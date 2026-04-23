@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistikas metožu salīdzinājums</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f4f1eb;
+    --surface: #ffffff;
+    --accent1: #2c5f6e;
+    --accent2: #e8834f;
+    --accent3: #3a7d44;
+    --muted: #8a8070;
+    --text: #1c1c1c;
+    --border: #d9d3c7;
+    --mn: #e8f4f8;
+    --mn-border: #2c5f6e;
+    --rsu: #fef6f0;
+    --rsu-border: #e8834f;
+    --both: #f0f7f1;
+    --both-border: #3a7d44;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    padding: 40px 24px 60px;
+    min-height: 100vh;
+  }
+
+  header {
+    max-width: 960px;
+    margin: 0 auto 40px;
+    border-bottom: 2px solid var(--text);
+    padding-bottom: 20px;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    line-height: 1.2;
+    color: var(--accent1);
+    margin-bottom: 8px;
+  }
+
+  header p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+  }
+
+  .legend {
+    max-width: 960px;
+    margin: 0 auto 28px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .dot-mn   { background: var(--mn); border: 2px solid var(--mn-border); }
+  .dot-rsu  { background: var(--rsu); border: 2px solid var(--rsu-border); }
+  .dot-both { background: var(--both); border: 2px solid var(--both-border); }
+
+  .table-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    overflow-x: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    font-size: 0.87rem;
+  }
+
+  thead tr {
+    background: var(--accent1);
+    color: #fff;
+  }
+
+  thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  thead th:first-child { border-radius: 10px 0 0 0; }
+  thead th:last-child  { border-radius: 0 10px 0 0; }
+
+  .group-header td {
+    background: var(--accent1);
+    color: rgba(255,255,255,0.75);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+  }
+
+  tbody tr:not(.group-header) td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  .row-mn   { background: var(--mn); }
+  .row-rsu  { background: var(--rsu); }
+  .row-both { background: var(--both); }
+
+  .row-mn:hover, .row-rsu:hover, .row-both:hover {
+    filter: brightness(0.97);
+  }
+
+  .method-name {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .badge-mn   { background: var(--mn); color: var(--mn-border); border: 1px solid var(--mn-border); }
+  .badge-rsu  { background: var(--rsu); color: var(--rsu-border); border: 1px solid var(--rsu-border); }
+  .badge-both { background: var(--both); color: var(--accent3); border: 1px solid var(--both-border); }
+
+  .check { color: #3a7d44; font-weight: 700; font-size: 1rem; }
+  .dash  { color: var(--muted); font-size: 1.1rem; }
+
+  .detail { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+
+  .col-method { width: 22%; }
+  .col-mn     { width: 30%; }
+  .col-rsu    { width: 30%; }
+  .col-pres   { width: 9%; text-align: center; }
+
+  .summary-box {
+    max-width: 960px;
+    margin: 32px auto 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .sum-card {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    border-top: 4px solid transparent;
+  }
+
+  .sum-card.c-both { border-top-color: var(--accent3); }
+  .sum-card.c-mn   { border-top-color: var(--mn-border); }
+  .sum-card.c-rsu  { border-top-color: var(--rsu-border); }
+
+  .sum-card .num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.4rem;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .sum-card.c-both .num { color: var(--accent3); }
+  .sum-card.c-mn   .num { color: var(--mn-border); }
+  .sum-card.c-rsu  .num { color: var(--rsu-border); }
+
+  .sum-card .label { font-size: 0.82rem; color: var(--muted); font-weight: 500; }
+
+  footer {
+    max-width: 960px;
+    margin: 36px auto 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .summary-box { grid-template-columns: 1fr; }
+    .col-mn, .col-rsu { width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Statistikas metodes — salīdzinošā analīze</h1>
+  <p>MN darba versija (RSU Psiholoģijas katedra, 2025/2026) &nbsp;·&nbsp; RSU Metodiskie norādījumi maģistra darbu izstrādei (Mārtinsone &amp; Šneidere, 2020)</p>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-both"></div> Abos dokumentos</div>
+  <div class="legend-item"><div class="legend-dot dot-mn"></div> Tikai MN darba versijā</div>
+  <div class="legend-item"><div class="legend-dot dot-rsu"></div> Tikai RSU MN 2020</div>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="col-method">Metode</th>
+      <th class="col-mn">MN darba versija<br><span style="font-weight:300;text-transform:none;font-size:0.78rem">(detalizēts apraksts, piemēri, tabulas)</span></th>
+      <th class="col-rsu">RSU MN 2020<br><span style="font-weight:300;text-transform:none;font-size:0.78rem">(vispārīgas norādes, piemēru pielikums)</span></th>
+      <th class="col-pres">MN<br>versijā</th>
+      <th class="col-pres">RSU<br>2020</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <!-- GROUP 1 -->
+    <tr class="group-header"><td colspan="5">1. APRAKSTOŠĀ STATISTIKA</td></tr>
+
+    <tr class="row-both">
+      <td class="method-name">Aprakstošā statistika — vispārīgi</td>
+      <td>Sīki aprakstīti centrālās tendences rādītāji (M, Mdn), izkliedes rādītāji (SD, IQR, Q1–Q3), asimetrijas/ekscesa rādītāji, minimums/maksimums. Atsevišķa apakšnodaļa ar piemērtabulām un teksta paraugiem.</td>
+      <td>Minēts, ka norāda M, SD (vai Mdn, ja asimetrisks sadalījums). Paraugtabula 8. pielikumā.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-both">
+      <td class="method-name">Kategorisko mainīgo biežumi un procenti</td>
+      <td>Sīki aprakstīts nominālo un ordinālo mainīgo biežumu un procentu atspoguļošanas princips.</td>
+      <td>Pieminēts kā daļa no izlases raksturojuma.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-both">
+      <td class="method-name">Normalitātes testi</td>
+      <td>Detalizēti aprakstīti Šapiro-Vilka (Shapiro-Wilk) un Kolmogorova-Smirnova (Kolmogorov-Smirnov) testi, Q-Q grafiki, histogrammas; pamato parametrisko/neparametrisko metožu izvēli.</td>
+      <td>Minēts Kolmogorova–Smirnova tests pielikuma paraugtabulā (1. tabula).</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <!-- GROUP 2 -->
+    <tr class="group-header"><td colspan="5">2. KORELĀCIJAS ANALĪZE</td></tr>
+
+    <tr class="row-both">
+      <td class="method-name">Pīrsona korelācijas koeficients (r)</td>
+      <td>Sīks apraksts: lietošanas nosacījumi, virziena un stipruma interpretācija, korelāciju matrica, izkaisītās diagrammas.</td>
+      <td>Minēts datu analīzes metodēs (4.8.4.) un atspoguļots 8. pielikumā ar paraugtabulu un grafikiem.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-both">
+      <td class="method-name">Spīrmena rangu korelācija (r<sub>s</sub>)</td>
+      <td>Detalizēts apraksts: nosacījumi, piemēri ar scatter plot vizualizāciju.</td>
+      <td>Minēts datu analīzes metodēs kā neparametriska alternatīva.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Biseriālā rangu korelācija (r<sub>b</sub>)</td>
+      <td>Aprakstīta kā efekta lieluma rādītājs Manna-Vitneja U testam; minēta arī simbolu sarakstā.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <!-- GROUP 3 -->
+    <tr class="group-header"><td colspan="5">3. DIVU GRUPU SALĪDZINĀŠANA</td></tr>
+
+    <tr class="row-both">
+      <td class="method-name">Stjudenta t-tests (t)</td>
+      <td>Sīki aprakstīti pieņēmumi, efekta lielums (Kohēna d), kombinētas tabulas ar U-testu, teksta paraugi.</td>
+      <td>Minēts 4.8.4. sadaļā, detalizēts 8. pielikumā ar paraugtabulu (5. tab.) un rezultātu aprakstu.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-both">
+      <td class="method-name">Manna-Vitneja U tests (U)</td>
+      <td>Sīki aprakstīts: nosacījumi, Mdn un IQR rādītāji, efekta lielums (r), kombinēšana ar t-testu vienā tabulā.</td>
+      <td>Minēts 4.8.4. sadaļā, detalizēts 8. pielikumā ar paraugtabulu (6. tab.) un rezultātu aprakstu.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Velča t-tests (Welch's t)</td>
+      <td>Pieminēts kā t-testa modifikācija, kad dispersijas nav viendabīgas (Lēvena tests nav izpildīts).</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Lēvena tests (Levene's test)</td>
+      <td>Aprakstīts kā dispersijas viendabīguma pārbaudes rīks pirms t-testa.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <!-- GROUP 4 -->
+    <tr class="group-header"><td colspan="5">4. VAIRĀKU GRUPU SALĪDZINĀŠANA (DISPERSIJU ANALĪZE)</td></tr>
+
+    <tr class="row-both">
+      <td class="method-name">Vienfaktora ANOVA (F)</td>
+      <td>Sīks apraksts: pieņēmumi, F-koeficients, brīvības pakāpes, post-hoc testi (Šefē, Tjuki, Bonferroni), efekta lielums (η²), paraugtabulas.</td>
+      <td>Detalizēts 8. pielikumā ar paraugtabulu (4. tab.), F, df, post-hoc (Scheffé) un η² aprakstu.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-both">
+      <td class="method-name">Kruskala-Volisa H tests (H)</td>
+      <td>Sīks apraksts: neparametriskais ANOVA analogs, post-hoc (Manna-Vitnija U ar Bonferroni korekciju), paraugtabulas.</td>
+      <td>Minēts datu analīzes metodēs kā neparametriskais analogs.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">ANCOVA, divfaktoru ANOVA, atkārtoto mērījumu ANOVA</td>
+      <td>Pieminētas kā papildu dispersijas analīzes varianti; dokumentā norādīts, ka to aprakstu jāmeklē APA7 vai citos avotos.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <!-- GROUP 5 -->
+    <tr class="group-header"><td colspan="5">5. REGRESIJAS ANALĪZE</td></tr>
+
+    <tr class="row-both">
+      <td class="method-name">Vienkāršā lineārā regresija</td>
+      <td>Aprakstīta kā viena neatkarīgā mainīgā variants lineārās regresijas ietvaros.</td>
+      <td>Minēta kā regresijas analīzes veids datu apstrādes sadaļā.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-both">
+      <td class="method-name">Multiplā regresija (Enter, soļu metode)</td>
+      <td>Detalizēts apraksts: β, R², ΔR², F, t, p rādītāji; soļu (stepwise) metodes paraugtabulas.</td>
+      <td>Detalizēts 8. pielikumā ar paraugtabulām (7. un 8. tab.) un rezultātu piemēriem.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Mediācijas un moderācijas analīze</td>
+      <td>Pieminēta kā papildu metode; norādīts, ka jāmeklē Hesa (Hayes, 2018) literatūrā.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Loģistiskā regresija</td>
+      <td>Pieminēta kā viena no papildu regresijas metodēm.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <!-- GROUP 6 -->
+    <tr class="group-header"><td colspan="5">6. FAKTORU ANALĪZE</td></tr>
+
+    <tr class="row-both">
+      <td class="method-name">Izpētošā faktoru analīze (EFA)</td>
+      <td>Sīks apraksts: PAF, PCA metodes, rotācijas (Varimax, Oblimin, Promax), KMO, Bartleta tests, Kaizera kritērijs, faktoru matrica, komunalitātes, izskaidrotā dispersija, paraugtabulas.</td>
+      <td>Pieminēta kā psihometrisko rādītāju analīzes metode (4.9. sadaļā un 8. pielikumā).</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-both">
+      <td class="method-name">Apstiprinošā faktoru analīze (CFA)</td>
+      <td>Sīks apraksts: modeļu salīdzināšana (2-faktoru vs 3-faktoru), atbilstības indeksi (CFI, TLI, RMSEA, SRMR), χ², otrās kārtas faktoru analīze, DWLS metode.</td>
+      <td>Pieminēta kā psihometrisko instrumentu validēšanas metode.</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <!-- GROUP 7 -->
+    <tr class="group-header"><td colspan="5">7. PSIHOMETRISKO RĀDĪTĀJU ANALĪZE</td></tr>
+
+    <tr class="row-both">
+      <td class="method-name">Kronbaha alfa (α) — iekšējā saskaņotība</td>
+      <td>Sīks apraksts: interpretācijas robežvērtības, atspoguļošana faktoru analīzes tabulās.</td>
+      <td>Minēta kā galvenais iekšējās saskaņotības rādītājs (4.8.2., 4.9. sadaļās).</td>
+      <td class="check">✓</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Makdonalda omega (ω)</td>
+      <td>Aprakstīta kā alternatīvs iekšējās saskaņotības rādītājs blakus Kronbaha alfai.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Pantu reakcijas (grūtības) indekss</td>
+      <td>Sīks apraksts kā psihometrisko rādītāju absolūtais minimums instrumenta analīzē.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Diskriminācijas indekss (item-rest correlation)</td>
+      <td>Sīks apraksts: interpretācija, robežvērtība (0,30), 95% ticamības intervāli.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <!-- GROUP 8 -->
+    <tr class="group-header"><td colspan="5">8. METAANALĪZE UN SISTEMĀTISKAIS PĀRSKATS</td></tr>
+
+    <tr class="row-rsu">
+      <td class="method-name">Naratīvā sintēze</td>
+      <td class="detail">—</td>
+      <td>Aprakstīta kā kvalitatīvā sistemātiskā pārskata datu sintēzes metode (7.2.6. sadaļā).</td>
+      <td class="dash">—</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-rsu">
+      <td class="method-name">Metaanalīze (fiksēto/variējošo efektu)</td>
+      <td class="detail">—</td>
+      <td>Aprakstīta kvantitatīvajā sistemātiskajā pārskatā (7.2.6. sadaļā), ieskaitot RevMan programmatūru.</td>
+      <td class="dash">—</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-rsu">
+      <td class="method-name">Metaetnogrāfija un kvalitatīvā tematiskā sintēze</td>
+      <td class="detail">—</td>
+      <td>Aprakstītas kvalitatīvajā sistemātiskajā pārskatā (7.2.6. sadaļā).</td>
+      <td class="dash">—</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <tr class="row-rsu">
+      <td class="method-name">Jauktā dizaina sintēze (nošķirtā, integrētā, eventuālā, reālistiskā)</td>
+      <td class="detail">—</td>
+      <td>Detalizēti aprakstītas jaukta dizaina sistemātiskajā pārskatā (7.2.6. sadaļā).</td>
+      <td class="dash">—</td>
+      <td class="check">✓</td>
+    </tr>
+
+    <!-- GROUP 9 -->
+    <tr class="group-header"><td colspan="5">9. PERSPEKTĪVĀS / MŪSDIENU METODES (minētas kā nākamais solis)</td></tr>
+
+    <tr class="row-mn">
+      <td class="method-name">SEM (Strukturālā vienādojuma modelēšana)</td>
+      <td>Pieminēta kā mūsdienu pētniecības metode publicēšanai (nodaļas noslēgumā).</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Tīklu analīze, Bayesian ANOVA/t-tests, mašīnmācīšanās</td>
+      <td>Pieminētas kā aktuālās metodes augstākā izglītības līmenī un publikācijām.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+    <tr class="row-mn">
+      <td class="method-name">Daļējo mazāko kvadrātu korelācija/regresija (PLS), kanoniskā korelācija, ANOM, Mixed Logit Models</td>
+      <td>Pieminētas kā perspektīvās metodes publikācijām.</td>
+      <td class="detail">—</td>
+      <td class="check">✓</td>
+      <td class="dash">—</td>
+    </tr>
+
+  </tbody>
+</table>
+</div>
+
+<div class="summary-box">
+  <div class="sum-card c-both">
+    <div class="num">11</div>
+    <div class="label">Metodes aprakstītas <strong>abos</strong> dokumentos</div>
+  </div>
+  <div class="sum-card c-mn">
+    <div class="num">14</div>
+    <div class="label">Metodes <strong>tikai MN darba versijā</strong> (dziļāks apraksts)</div>
+  </div>
+  <div class="sum-card c-rsu">
+    <div class="num">4</div>
+    <div class="label">Metodes <strong>tikai RSU MN 2020</strong> (sistemātiskā pārskata metodes)</div>
+  </div>
+</div>
+
+<footer>
+  <strong>Avoti:</strong> MN darba versija — RSU Psiholoģijas katedra (2025/2026 darba versija, aprīlis); 
+  RSU Metodiskie norādījumi maģistra darbu izstrādei — Mārtinsone, K. un Šneidere, K. (red.), RSU, 2020. &nbsp;·&nbsp;
+  Tabula sagatavota salīdzinošai analīzei.
+</footer>
+
+</body>
+</html>
